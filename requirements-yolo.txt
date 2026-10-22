@@ -1,0 +1,8 @@
+# Optional environment for YOLO11 experiments.
+torch==2.9.0
+torchvision==0.24.0
+ultralytics==8.4.175
+opencv-python==5.0.0.93
+numpy==2.5.3
+pycocotools==2.0.11
+

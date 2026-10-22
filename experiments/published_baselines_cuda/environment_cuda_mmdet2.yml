@@ -1,0 +1,16 @@
+name: logxy-mmdet2
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pytorch=1.13.1
+  - torchvision=0.14.1
+  - pytorch-cuda=11.7
+  - pip
+  - pip:
+      - openmim
+      - pycocotools
+      - opencv-python
+      - tqdm

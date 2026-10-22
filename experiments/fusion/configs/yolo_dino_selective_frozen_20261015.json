@@ -1,0 +1,65 @@
+{
+  "status": "frozen_before_independent_holdout_inference",
+  "source_experiment": "outputs/fusion/yolo_dino_selective_20261015/selective_eval_verified/selective_fusion_summary.json",
+  "source_experiment_sha256": "66d129c1ff9498a0867d4e82cd69e5177612ee3e7faf86393f504fe4c2aaac0e",
+  "calibration_manifest": "outputs/subsets/forestpersons_val_fusion_calibration_200_seed20261015_manifest.json",
+  "calibration_manifest_sha256": "6de112fb6c4013e95b4f931c88193c18cb25af7a034a97ee86241364cfc9091e",
+  "selection_subset": "outputs/subsets/forestpersons_val_600_seed20261010_manifest.json",
+  "selection_subset_sha256": "06a6d72d0895c4f1b8c254eed13123af5856d6d274966711b668beb3c84b5ed4",
+  "checkpoints": {
+    "yolo11s": {
+      "path": "outputs/yolo11_finetune/train_runs/yolo11s_forestpersons_train5000_seed20261012_img640_b8_e50/weights/best.pt",
+      "sha256": "cf30fae2b6fc08c84a26c9310114fb15fe60e844b6e510d09003372f785cf896",
+      "imgsz": 640,
+      "prediction_floor": 0.001,
+      "model_nms_iou": 0.5,
+      "device": "cpu"
+    },
+    "dinov3_lora_fcos": {
+      "path": "outputs/dinov3_lora/train5000_seed20261012_r4_qv_fcosinit_e2_rerun1/dinov3_lora_fcos.pt",
+      "sha256": "07f6c38b25f41de2a79961a383243390614d44f22de3f84a21c5808fc56bb1a5",
+      "short_side": 672,
+      "prediction_floor": 0.001,
+      "actual_previous_saved_floor": 0.09571603685617447,
+      "model_nms_iou": 0.5,
+      "device": "mps"
+    }
+  },
+  "evaluation": {
+    "match_iou": 0.5,
+    "strict_fp_per_image_limit": 0.425,
+    "person_category_id": 1,
+    "max_dets": [1, 10, 100]
+  },
+  "operating_points": {
+    "yolo": {
+      "confidence_threshold": 0.04
+    },
+    "selective_A": {
+      "final_fused_score_threshold": 0.0,
+      "yolo_keep_threshold": 0.075,
+      "dino_add_threshold": 0.55,
+      "duplicate_iou": 0.3,
+      "fusion_nms_iou": 0.5
+    },
+    "selective_B": {
+      "final_fused_score_threshold": 0.0,
+      "yolo_keep_threshold": 0.1,
+      "yolo_rescue_floor": 0.01,
+      "dino_support_threshold": 0.5,
+      "support_iou": 0.3,
+      "minimum_area_consistency": 0.25,
+      "fusion_nms_iou": 0.5
+    }
+  },
+  "score_calibration": {
+    "type": "ten-bin quantile precision calibration with isotonic pooling",
+    "source": "calibration section of source_experiment",
+    "refit_on_holdout": false
+  },
+  "prohibitions": [
+    "No threshold or parameter selection on the independent holdout",
+    "No calibrator refit on the independent holdout",
+    "No checkpoint changes"
+  ]
+}

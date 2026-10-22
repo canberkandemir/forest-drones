@@ -1,0 +1,15 @@
+{
+  "scope": "ForestPersons selected val600 pilot; not the official full validation split",
+  "iou_threshold": 0.5,
+  "mvr_comparison": {
+    "baseline": {"AP": 0.3267, "AP50": 0.7915, "AP75": 0.2022, "AR100": 0.4550},
+    "mvr": {"AP": 0.3623, "AP50": 0.8162, "AP75": 0.2675, "AR100": 0.4900}
+  },
+  "ann2snn_fixed_confidence_0_63": [
+    {"mode": "ANN", "AP50": 0.8162, "recall": 0.8077, "precision": 0.7601, "FP_per_image": 0.3183, "R20": 0.5862, "R40": 0.7765, "R70": 0.9016, "R100": 0.9292, "seconds_per_image": 0.0130, "spike_activity": null},
+    {"mode": "SNN_T4", "AP50": 0.7622, "recall": 0.7156, "precision": 0.7679, "FP_per_image": 0.2700, "R20": 0.4425, "R40": 0.6765, "R70": 0.8135, "R100": 0.8821, "seconds_per_image": 0.0232, "spike_activity": 0.0246},
+    {"mode": "SNN_T8", "AP50": 0.8002, "recall": 0.7891, "precision": 0.7685, "FP_per_image": 0.2967, "R20": 0.5632, "R40": 0.7412, "R70": 0.8756, "R100": 0.9340, "seconds_per_image": 0.0311, "spike_activity": 0.0320},
+    {"mode": "SNN_T16", "AP50": 0.8083, "recall": 0.7997, "precision": 0.7729, "FP_per_image": 0.2933, "R20": 0.5862, "R40": 0.7529, "R70": 0.8808, "R100": 0.9387, "seconds_per_image": 0.0491, "spike_activity": 0.0356}
+  ],
+  "energy_claim": "None. Spike activity is not a hardware energy measurement."
+}

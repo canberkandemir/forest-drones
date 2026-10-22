@@ -1,0 +1,81 @@
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python caches, test artifacts, and environments
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv*/
+venv/
+env/
+
+# Credentials and machine-local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.netrc
+.huggingface/
+
+# Datasets and generated data. Keep directory documentation only.
+/data/**
+!data/README.md
+!data/aos/
+/data/aos/**
+!data/aos/README.md
+
+# Generated experiment artifacts. Curated summaries belong in docs/results.
+/outputs/**
+!outputs/README.md
+!outputs/dinov3_detector/
+/outputs/dinov3_detector/**
+!outputs/dinov3_detector/README.md
+!outputs/colab_upload/
+/outputs/colab_upload/**
+!outputs/colab_upload/README.md
+/runs/
+/results/
+/logs/
+*.log
+
+# Model weights and feature caches
+/models/**
+!models/README.md
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.npz
+*.npy
+
+# Downloaded/vendor repositories and checkpoint stores
+experiments/**/.git/
+experiments/**/checkpoints/
+
+# Research papers, private specifications, presentations, and exports
+docs/papers/*.pdf
+docs/specs/*.pdf
+/presentations/
+*.pptx
+*.keynote
+*.pdf
+
+# Personal exports and Codex-local state
+.codex-finalizer/
+Motivation Letter*
+*_files/
+
