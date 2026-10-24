@@ -7,9 +7,12 @@ from scripts.evaluate_dinov3_mvr_fcos import (
     flatten_sweep_rows,
     matched_budget_rows,
 )
+from scripts.train_dinov3_mvr_fcos import make_model
 from forestpersons.dinov3_detector import (
     DINOv3FCOSHead,
     DINOv3MVRFCOSHead,
+    DINOv3MVRNativeFCOSHead,
+    DINOv3MVRNativeReadout,
     DINOv3MVRReadout,
     PreprocessInfo,
     load_mvr_feature_cache,
@@ -43,6 +46,71 @@ def test_mvr_fcos_matches_baseline_at_initialization_and_has_gradients() -> None
     assert mvr.readout.residual.weight.grad is not None
     assert torch.isfinite(mvr.readout.residual.weight.grad).all()
     assert mvr.fcos.classification.weight.grad is not None
+
+
+def test_native_mvr_starts_as_exact_fallback_and_matches_baseline() -> None:
+    torch.manual_seed(11)
+    layers = normalized_layers()
+    baseline = DINOv3FCOSHead()
+    native = DINOv3MVRNativeFCOSHead()
+    native.fcos.load_state_dict(baseline.state_dict())
+
+    assert torch.allclose(native.readout(layers), layers[-1], atol=1e-6)
+    for expected, actual in zip(baseline(layers[-1]), native(layers)):
+        assert torch.allclose(actual, expected, atol=1e-6)
+
+
+def test_native_mvr_projection_gradients_flow_after_residual_update() -> None:
+    torch.manual_seed(13)
+    layers = normalized_layers()
+    model = DINOv3MVRNativeFCOSHead()
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
+
+    first_loss = sum(output.square().mean() for output in model(layers))
+    first_loss.backward()
+    assert model.readout.residual.weight.grad is not None
+    assert torch.isfinite(model.readout.residual.weight.grad).all()
+    optimizer.step()
+    optimizer.zero_grad(set_to_none=True)
+
+    second_loss = sum(output.square().mean() for output in model(layers))
+    second_loss.backward()
+    projection_grad = model.readout.layer_projections[0][0].weight.grad
+    assert projection_grad is not None
+    assert torch.isfinite(projection_grad).all()
+    assert torch.count_nonzero(projection_grad) > 0
+
+
+def test_native_mvr_is_smaller_and_keeps_full_mvr_checkpoint_compatible() -> None:
+    native = DINOv3MVRNativeReadout()
+    full = DINOv3MVRReadout()
+    assert sum(parameter.numel() for parameter in native.parameters()) == 197_248
+    assert sum(parameter.numel() for parameter in native.parameters()) < sum(
+        parameter.numel() for parameter in full.parameters()
+    )
+    assert not hasattr(native, "fine_context")
+    assert not hasattr(native, "coarse_context")
+
+    legacy_state = full.state_dict()
+    reloaded = DINOv3MVRReadout()
+    reloaded.load_state_dict(legacy_state, strict=True)
+    assert tuple(reloaded.state_dict()) == tuple(legacy_state)
+
+
+def test_model_factory_supports_all_three_arms_with_matched_fcos() -> None:
+    torch.manual_seed(17)
+    fcos = DINOv3FCOSHead()
+    state = fcos.state_dict()
+    baseline = make_model("baseline", state)
+    native = make_model("mvr_native", state)
+    full = make_model("mvr", state)
+
+    assert isinstance(baseline, DINOv3FCOSHead)
+    assert isinstance(native, DINOv3MVRNativeFCOSHead)
+    assert isinstance(full, DINOv3MVRFCOSHead)
+    for name, expected in state.items():
+        assert torch.equal(native.fcos.state_dict()[name], expected)
+        assert torch.equal(full.fcos.state_dict()[name], expected)
 
 
 def test_mvr_cache_round_trip(tmp_path) -> None:
@@ -81,7 +149,12 @@ def test_mvr_evaluation_tables_preserve_sweep_and_matched_budgets() -> None:
             "false_positives": 1,
             "false_negatives": 2,
         },
-        "by_visibility": {"20": {"recall": 0.5}},
+        "by_visibility": {
+            "20": {"recall": 0.5},
+            "40": {"recall": 0.6},
+            "70": {"recall": 0.7},
+            "100": {"recall": 0.8},
+        },
         "false_positives_per_image": 0.25,
     }
     result = {
@@ -91,13 +164,20 @@ def test_mvr_evaluation_tables_preserve_sweep_and_matched_budgets() -> None:
         "AP75": 0.2,
         "AR100": 0.4,
         "confidence_sweep": [metric],
-        "matched_fp_budgets": {"0.15": None, "0.25": metric, "0.35": metric},
+        "matched_fp_budgets": {
+            "0.15": None,
+            "0.25": metric,
+            "0.35": metric,
+            "0.425": metric,
+        },
     }
 
     sweep = flatten_sweep_rows([result])
     matched = matched_budget_rows([result])
 
     assert sweep[0]["R20"] == 0.5
+    assert sweep[0]["R100"] == 0.8
     assert matched[0]["confidence_threshold"] is None
     assert matched[1]["recall"] == 0.6
+    assert matched[-1]["R40"] == 0.6
     assert "exploratory" in comparison_report([result], matched)

@@ -20,6 +20,7 @@ from forestpersons import ForestPersonsDataset
 from forestpersons.dinov3_detector import (
     DINOv3FCOSHead,
     DINOv3MVRFCOSHead,
+    DINOv3MVRNativeFCOSHead,
     annotations_to_ground_truth,
     build_fcos_targets,
     cache_path_for_file,
@@ -110,6 +111,15 @@ def state_digest(state: dict[str, torch.Tensor]) -> str:
     return digest.hexdigest()
 
 
+def file_digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def validate_sample_count(actual: int, expected: int) -> None:
+    if actual != expected:
+        raise ValueError(f"Expected {expected} training samples, found {actual}")
+
+
 def save_checkpoint(path: Path, payload: dict[str, Any]) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
     torch.save(payload, temporary)
@@ -121,14 +131,19 @@ def make_model(arm: str, fcos_state: dict[str, torch.Tensor]) -> torch.nn.Module
         model = DINOv3FCOSHead()
         model.load_state_dict(fcos_state)
         return model
-    model = DINOv3MVRFCOSHead()
+    if arm == "mvr_native":
+        model = DINOv3MVRNativeFCOSHead()
+    elif arm == "mvr":
+        model = DINOv3MVRFCOSHead()
+    else:
+        raise ValueError(f"Unsupported arm: {arm}")
     model.fcos.load_state_dict(fcos_state)
     return model
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--arm", choices=("baseline", "mvr"), required=True)
+    parser.add_argument("--arm", choices=("baseline", "mvr_native", "mvr"), required=True)
     parser.add_argument("--root", type=Path, default=Path("data"))
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--final-cache-root", type=Path, required=True)
@@ -143,11 +158,12 @@ def main() -> None:
     parser.add_argument("--gradient-clip", type=float, default=5.0)
     parser.add_argument("--seed", type=int, default=20261012)
     parser.add_argument("--device", choices=("mps", "cpu"), default="mps")
+    parser.add_argument("--expected-samples", type=int, default=5000)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
 
-    if args.arm == "mvr" and args.mvr_cache_root is None:
-        raise ValueError("--mvr-cache-root is required for --arm mvr")
+    if args.arm != "baseline" and args.mvr_cache_root is None:
+        raise ValueError(f"--mvr-cache-root is required for --arm {args.arm}")
     device = torch.device(
         "mps" if args.device == "mps" and torch.backends.mps.is_available() else "cpu"
     )
@@ -168,6 +184,7 @@ def main() -> None:
     fcos_state = copy.deepcopy(canonical_fcos.state_dict())
     fcos_sha = state_digest(fcos_state)
     model = make_model(args.arm, fcos_state).to(device)
+    model_initial_sha = state_digest(model.state_dict())
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay
     )
@@ -179,8 +196,8 @@ def main() -> None:
         args.mvr_cache_root,
         args.arm,
     )
-    if len(dataset) != 5000:
-        raise ValueError(f"Expected train5000, found {len(dataset)} samples")
+    validate_sample_count(len(dataset), args.expected_samples)
+    manifest_sha = file_digest(args.manifest)
 
     output = args.output_dir.resolve()
     latest = output / "last.pt"
@@ -190,6 +207,12 @@ def main() -> None:
         checkpoint = torch.load(latest, map_location=device, weights_only=False)
         if checkpoint["arm"] != args.arm or checkpoint["fcos_initial_sha256"] != fcos_sha:
             raise ValueError("Resume checkpoint arm or matched FCOS initialization differs")
+        if checkpoint.get("model_initial_sha256", model_initial_sha) != model_initial_sha:
+            raise ValueError("Resume checkpoint full model initialization differs")
+        if checkpoint.get("manifest_sha256", manifest_sha) != manifest_sha:
+            raise ValueError("Resume checkpoint manifest differs")
+        if int(checkpoint.get("training_samples", len(dataset))) != len(dataset):
+            raise ValueError("Resume checkpoint training sample count differs")
         saved = checkpoint["training_config"]
         for key, value in asdict(config).items():
             if key != "epochs" and saved[key] != value:
@@ -218,10 +241,18 @@ def main() -> None:
                     "arm": args.arm,
                     "training_config": asdict(config),
                     "manifest": str(args.manifest.resolve()),
+                    "manifest_sha256": manifest_sha,
+                    "training_samples": len(dataset),
                     "final_cache_root": str(args.final_cache_root.resolve()),
                     "mvr_cache_root": str(args.mvr_cache_root.resolve()) if args.mvr_cache_root else None,
                     "fcos_initial_sha256": fcos_sha,
-                    "mvr_layers": [3, 6, 9, 12] if args.arm == "mvr" else [12],
+                    "model_initial_sha256": model_initial_sha,
+                    "mvr_layers": [3, 6, 9, 12] if args.arm != "baseline" else [12],
+                    "readout": {
+                        "baseline": "final_layer_only",
+                        "mvr_native": "selected_layers_native_only",
+                        "mvr": "selected_layers_native_fine_coarse",
+                    }[args.arm],
                 },
                 indent=2,
             )
@@ -292,13 +323,20 @@ def main() -> None:
         payload = {
             "format_version": 1,
             "arm": args.arm,
-            "head": "fcos" if args.arm == "baseline" else "mvr_fcos",
+            "head": {
+                "baseline": "fcos",
+                "mvr_native": "mvr_native_fcos",
+                "mvr": "mvr_fcos",
+            }[args.arm],
             "model_state": model.state_dict(),
             "optimizer_state": optimizer.state_dict(),
             "completed_epoch": epoch,
             "training_config": asdict(config),
             "history": history,
             "fcos_initial_sha256": fcos_sha,
+            "model_initial_sha256": model_initial_sha,
+            "manifest_sha256": manifest_sha,
+            "training_samples": len(dataset),
             "runtime_seconds": runtime,
             "peak_mps_driver_bytes": peak_mps,
         }

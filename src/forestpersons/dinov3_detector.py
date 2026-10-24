@@ -278,6 +278,58 @@ class DINOv3MVRReadout(nn.Module):
         return fused.permute(1, 2, 0)
 
 
+class DINOv3MVRNativeReadout(nn.Module):
+    """Residual multi-layer readout without fine/coarse context branches.
+
+    This ablation preserves the final-layer feature as an exact initialization
+    fallback while isolating the contribution of blocks 3/6/9/12 at their
+    native patch-grid resolution. The existing full MVR module is intentionally
+    left unchanged for checkpoint compatibility.
+    """
+
+    def __init__(
+        self,
+        input_dim: int = 384,
+        layer_count: int = 4,
+        branch_dim: int = 64,
+    ) -> None:
+        super().__init__()
+        self.input_dim = input_dim
+        self.layer_count = layer_count
+        self.branch_dim = branch_dim
+        self.layer_projections = nn.ModuleList(
+            [
+                nn.Sequential(
+                    nn.Conv2d(input_dim, branch_dim, kernel_size=1),
+                    nn.ReLU(inplace=False),
+                )
+                for _ in range(layer_count)
+            ]
+        )
+        channels = layer_count * branch_dim
+        self.residual = nn.Conv2d(channels, input_dim, kernel_size=1)
+        nn.init.zeros_(self.residual.weight)
+        nn.init.zeros_(self.residual.bias)
+
+    def forward(self, layer_features: torch.Tensor) -> torch.Tensor:
+        if layer_features.ndim != 4:
+            raise ValueError("layer_features must have shape [layers, height, width, channels]")
+        layers, _height, _width, channels = layer_features.shape
+        if layers != self.layer_count or channels != self.input_dim:
+            raise ValueError(
+                f"Expected [{self.layer_count}, H, W, {self.input_dim}], got {tuple(layer_features.shape)}"
+            )
+        projected = [
+            projection(features.permute(2, 0, 1).unsqueeze(0))
+            for projection, features in zip(self.layer_projections, layer_features)
+        ]
+        native = torch.cat(projected, dim=1)
+        delta = self.residual(native).squeeze(0)
+        reference = layer_features[-1].permute(2, 0, 1)
+        fused = F.normalize(reference + delta, dim=0)
+        return fused.permute(1, 2, 0)
+
+
 class DINOv3DetectionHead(nn.Module):
     """Small dense head over frozen DINO patch tokens."""
 
@@ -382,6 +434,24 @@ class DINOv3MVRFCOSHead(nn.Module):
     ) -> None:
         super().__init__()
         self.readout = DINOv3MVRReadout(input_dim, layer_count, branch_dim)
+        self.fcos = DINOv3FCOSHead(input_dim=input_dim, hidden_dim=hidden_dim)
+
+    def forward(self, layer_features: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        return self.fcos(self.readout(layer_features))
+
+
+class DINOv3MVRNativeFCOSHead(nn.Module):
+    """Native-grid multi-layer MVR ablation followed by canonical FCOS."""
+
+    def __init__(
+        self,
+        input_dim: int = 384,
+        layer_count: int = 4,
+        branch_dim: int = 64,
+        hidden_dim: int = 160,
+    ) -> None:
+        super().__init__()
+        self.readout = DINOv3MVRNativeReadout(input_dim, layer_count, branch_dim)
         self.fcos = DINOv3FCOSHead(input_dim=input_dim, hidden_dim=hidden_dim)
 
     def forward(self, layer_features: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:

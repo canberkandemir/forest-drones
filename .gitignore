@@ -3,32 +3,53 @@
 Thumbs.db
 .idea/
 .vscode/
+.fleet/
 *.swp
 *.swo
+*~
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100/
+.Trashes/
 
 # Python caches, test artifacts, and environments
 __pycache__/
 *.py[cod]
 *.so
 .pytest_cache/
+.ipynb_checkpoints/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
+.tox/
+.nox/
 .coverage
+.coverage.*
 htmlcov/
 .venv*/
 venv/
 env/
+pip-wheel-metadata/
+*.egg-info/
+build/
+dist/
 
 # Credentials and machine-local configuration
 .env
 .env.*
 !.env.example
+.envrc
+credentials*.json
+token*.json
+secrets.*
 *.pem
 *.key
 *.p12
 *.pfx
 .netrc
 .huggingface/
+.cache/
 
 # Datasets and generated data. Keep directory documentation only.
 /data/**
@@ -46,10 +67,24 @@ env/
 !outputs/colab_upload/
 /outputs/colab_upload/**
 !outputs/colab_upload/README.md
+!outputs/subsets/
+/outputs/subsets/**
+!outputs/subsets/*.json
+!outputs/subsets/*.csv
 /runs/
 /results/
 /logs/
+wandb/
+mlruns/
+lightning_logs/
+profiler/
+*.tfevents.*
 *.log
+*.pid
+*.tmp
+*.temp
+*.bak
+*.orig
 
 # Model weights and feature caches
 /models/**
@@ -59,12 +94,29 @@ env/
 *.ckpt
 *.safetensors
 *.onnx
+*.bin
+*.h5
+*.hdf5
+*.tflite
+*.mlmodel
+*.pkl
+*.pickle
+*.joblib
 *.npz
 *.npy
+*.arrow
+*.parquet
+*.sqlite
+*.sqlite3
 
 # Downloaded/vendor repositories and checkpoint stores
 experiments/**/.git/
 experiments/**/checkpoints/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
 
 # Research papers, private specifications, presentations, and exports
 docs/papers/*.pdf

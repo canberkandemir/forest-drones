@@ -814,7 +814,7 @@ Dependency finding:
 Automated tests:
 
 - Command:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src /Users/canberk/Desktop/LogXY/.venv-yolo/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src $LOGXY_ARTIFACT_ROOT/.venv-yolo/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
 - Result: 15 passed.
 
 Smoke tests:
@@ -993,7 +993,7 @@ Output files:
 Automated tests:
 
 - Command:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src /Users/canberk/Desktop/LogXY/.venv-yolo/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src $LOGXY_ARTIFACT_ROOT/.venv-yolo/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
 - Result: 16 passed.
 
 Limitations:
@@ -1119,7 +1119,7 @@ Report:
 Automated tests:
 
 - Command:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src /Users/canberk/Desktop/LogXY/.venv-yolo/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src $LOGXY_ARTIFACT_ROOT/.venv-yolo/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
 - Result: 16 passed.
 
 Recommended next action:
@@ -1265,7 +1265,7 @@ Interpretation:
 Automated tests:
 
 - Command:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src /Users/canberk/Desktop/LogXY/.venv-dinov3/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src $LOGXY_ARTIFACT_ROOT/.venv-dinov3/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
 - Result: 20 passed.
 
 Recommended next action:
@@ -1368,7 +1368,7 @@ Artifacts:
 Automated tests:
 
 - Command:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src /Users/canberk/Desktop/LogXY/.venv-dinov3/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src $LOGXY_ARTIFACT_ROOT/.venv-dinov3/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
 - Result: 25 passed.
 
 Limitations:
@@ -1504,7 +1504,7 @@ Estimated requirements:
 Automated tests:
 
 - Command:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src:/Users/canberk/Desktop/LogXY /Users/canberk/Desktop/LogXY/.venv-dinov3/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src:$LOGXY_ARTIFACT_ROOT $LOGXY_ARTIFACT_ROOT/.venv-dinov3/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
 - Result: 31 passed.
 
 Remaining blockers:
@@ -1647,7 +1647,7 @@ Artifacts:
 Automated tests:
 
 - Command:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src:/Users/canberk/Desktop/LogXY /Users/canberk/Desktop/LogXY/.venv-dinov3/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src:$LOGXY_ARTIFACT_ROOT $LOGXY_ARTIFACT_ROOT/.venv-dinov3/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
 - Result: 34 passed.
 
 Recommended next action:
@@ -1739,7 +1739,7 @@ Not executed:
 Automated tests:
 
 - Command:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src:/Users/canberk/Desktop/LogXY /Users/canberk/Desktop/LogXY/.venv-dinov3/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src:$LOGXY_ARTIFACT_ROOT $LOGXY_ARTIFACT_ROOT/.venv-dinov3/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
 - Result: 35 passed.
 
 Remaining blockers:
@@ -1822,7 +1822,7 @@ Not executed:
 Automated tests:
 
 - Command:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src:/Users/canberk/Desktop/LogXY /Users/canberk/Desktop/LogXY/.venv-dinov3/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src:$LOGXY_ARTIFACT_ROOT $LOGXY_ARTIFACT_ROOT/.venv-dinov3/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
 - Result: 36 passed.
 
 Next manual step:
@@ -1886,7 +1886,7 @@ Validation:
   - Result: 6 passed.
 - Full local test suite:
   - Command:
-    `PYTHONPATH=/Users/canberk/Desktop/LogXY/src:/Users/canberk/Desktop/LogXY /Users/canberk/Desktop/LogXY/.venv-dinov3/bin/python -m pytest /Users/canberk/Desktop/LogXY/tests -q`
+    `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src:$LOGXY_ARTIFACT_ROOT $LOGXY_ARTIFACT_ROOT/.venv-dinov3/bin/python -m pytest $LOGXY_ARTIFACT_ROOT/tests -q`
   - Result: 36 passed.
 
 Next manual step:
@@ -2692,7 +2692,7 @@ MPS smoke test:
 Validation:
 
 - Ran full test suite:
-  `PYTHONPATH=/Users/canberk/Desktop/LogXY/src:/Users/canberk/Desktop/LogXY /Users/canberk/Desktop/LogXY/.venv-dinov3/bin/python -m pytest tests -q`
+  `PYTHONPATH=$LOGXY_ARTIFACT_ROOT/src:$LOGXY_ARTIFACT_ROOT $LOGXY_ARTIFACT_ROOT/.venv-dinov3/bin/python -m pytest tests -q`
 - Result: 53 tests passed.
 
 Report:
@@ -4990,4 +4990,169 @@ The GitHub-safe summary is
 `docs/reports/dinov3_mvr_ann2snn_val600_2026-10-22.md`; raw checkpoints,
 predictions, caches, and full output directories remain local and excluded from
 version control.
+
+## 2026-10-22 — MVR Native Readout Ablation Implemented
+
+Added an optional `mvr_native` arm between the unchanged final-layer baseline
+and full native/fine/coarse MVR. The 197,248-parameter native readout projects
+blocks 3/6/9/12 at the original patch grid and adds a zero-initialized residual
+to block 12; together with FCOS it has 721,894 trainable parameters. Existing
+baseline and full-MVR checkpoint state dictionaries strict-load unchanged.
+
+Focused MVR/ANN2SNN tests passed 14/14 and the maintained suite passed 190 with
+3 skipped. A two-image real-cache MPS forward/backward smoke produced finite
+losses 1.25248 and 1.04025, nonzero projection gradients after the first update,
+0.927 s runtime, and 1.043 GiB observed driver memory. No checkpoint or
+training output was written and full training was not started.
+
+The trainer and evaluator now support the three-arm comparison while preserving
+legacy two-arm behavior. Exact non-overwriting commands are documented in
+`docs/reports/dinov3_mvr_native_ablation_implementation_2026-10-22.md`.
+
+## 2026-10-23 — MVR Native Readout Ablation Completed
+
+Completed the matched 20-epoch `mvr_native` train5000 run and three-arm val600
+evaluation. Native multi-layer readout achieved AP 0.3303, AP50 0.7926, AP75
+0.2082, and AR@100 0.4615, compared with baseline 0.3267/0.7915/0.2022/0.4550
+and full MVR 0.3623/0.8162/0.2675/0.4900. At the exploratory 0.425 FP/image
+budget, recall/R20 were baseline 0.8198/0.6207, native 0.8318/0.6322, and full
+MVR 0.8278/0.6092.
+
+Native training loss fell from 0.85827 to 0.61632 over 20 epochs in 7,511.16 s
+(2 h 05 m 11 s). The ablation shows that native-grid intermediate layers yield
+only small AP/AR gains; most full-MVR improvement, especially AP75, comes from
+the added fine/coarse multi-resolution context. Operating points are
+exploratory because thresholds were selected on val600.
+
+Artifacts and interpretation are recorded in
+`docs/reports/dinov3_mvr_native_ablation_results_2026-10-23.md`.
+
+Repeated the exact three-arm cached-feature evaluation into the separate
+`evaluation_val600_readout_ablation_seed20261012_rerun1` directory. All three
+prediction JSON files, the confidence sweep, and matched-budget CSV matched the
+original byte-for-byte; metric values were exact after excluding runtime-only
+fields. No model was retrained and no prior output was overwritten.
+
+## 2026-10-23 — Full MVR Label-Efficiency Study Prepared
+
+Prepared, but did not train, a controlled Full MVR label-efficiency study using
+exact nested train100/train400/train1000/train5000 prefixes. The historical
+train400 was not nested (397/400 overlap with train5000), and naive train5000
+prefixes were visibility-biased, so a deterministic visibility-interleaved,
+sequence-folder-round-robin order was created from exactly the existing
+train5000 pool.
+
+The subsets contain 141/519/1300/6415 annotations and 89/222/258/258 sequence
+folders. Each has exactly 25/100/250/1250 target images per visibility. Train
+and val have zero filename and zero sequence-folder overlap; 45 split-local
+numeric image IDs overlap and are deliberately not used for identity. All
+5,000 images and both 5,000-item feature caches were verified present.
+
+The trainer now supports an explicit expected sample count and records strict
+manifest, sample-count, FCOS-initialization, and full-model-initialization
+metadata for resume/evaluation checks. A thin evaluator reuses the canonical
+val600 metric implementation. Focused tests and exact non-overwriting commands
+are documented in
+`docs/reports/dinov3_mvr_label_efficiency_readiness_2026-10-23.md`.
+
+## 2026-10-23 — Full MVR Label-Efficiency Study Completed
+
+Completed matched 20-epoch Full MVR training on exact nested train100/400/1000/
+train5000 subsets and evaluated all four checkpoints on val600. All runs used
+the same FCOS and complete-model initialization hashes and had finite 20-epoch
+histories.
+
+AP increased monotonically from 0.0844 to 0.1735 to 0.2673 to 0.3353; AP75 from
+0.0151 to 0.0547 to 0.1290 to 0.2169; and AR@100 from 0.2430 to 0.3387 to
+0.4099 to 0.4780. At the exploratory 0.425 FP/image budget, recall increased
+from 0.3231 to 0.5607 to 0.7250 to 0.8224, while R20 increased from 0.1264 to
+0.2644 to 0.4713 to 0.5977.
+
+Training runtimes were 165/612/1665/8119 seconds with approximately 1.10 GiB
+peak MPS driver memory. The trend supports additional seeds, but the experiment
+uses one seed, fixed epochs imply different optimizer-step counts, val600 is a
+reused pilot subset, and train1000 already spans all 258 training sequences.
+The matched train5000 AP is also 0.0270 below the earlier differently ordered
+Full MVR run, demonstrating order sensitivity.
+
+Full results and limitations are documented in
+`docs/reports/dinov3_mvr_label_efficiency_results_2026-10-23.md`.
+
+## 2026-10-23 — Frozen versus LoRA Full MVR Experiment Prepared
+
+Prepared the matched online Experiment 3 infrastructure without starting
+training. Both arms strict-load the same strongest completed Full MVR + FCOS
+checkpoint (AP 0.3623) and use the same train5000 manifest, two epochs, image
+order, losses, accumulation, optimizer-step budget, and val600 protocol. The
+control trains only the 923,622-parameter MVR/FCOS head with DINOv3 frozen; the
+experimental arm additionally trains 73,728 fresh rank-4 q/v LoRA parameters.
+
+Added differentiable online extraction for blocks 3/6/9/12, an overwrite-safe
+resumable trainer, and an evaluator that rejects mismatched initialization,
+manifest, settings, optimizer steps, or per-epoch image order. Focused LoRA/MVR
+and label-efficiency tests passed 25/25, both CLI entry points import successfully, and the actual
+initial checkpoint strict-loaded. No training, inference, cache generation,
+commit, or push occurred. Commands, estimates, and limitations are in
+`docs/reports/dinov3_mvr_frozen_vs_lora_readiness_2026-10-23.md`.
+
+## 2026-10-23 — Frozen versus LoRA Full MVR MPS Smoke Passed
+
+Added a non-resumable `--smoke-optimizer-steps` mode that preserves the full
+Experiment 3 configuration but writes only `smoke.pt` and
+`smoke_summary.json`; it never writes `latest.pt` or `final.pt`. Two matched
+MPS runs processed 8 real train5000 images and performed 2 optimizer steps.
+
+Frozen and fresh-LoRA losses were finite at 0.632151 and 0.635843. Runtime was
+6.51/11.25 seconds and observed peak MPS driver memory was 1.69/5.56 GiB. No
+gradient clipping occurred. All 32 MVR/FCOS tensors received nonzero gradients
+and changed in both arms. In the LoRA arm, 24/48 adapter gradients were nonzero
+at step 1 as expected from zero-initialized B matrices; all 48 were nonzero at
+step 2, and all 24 B matrices changed. Sample-order hashes matched exactly.
+
+Focused tests passed 26/26. Full training was not started. Commands and artifacts
+are documented in
+`docs/reports/dinov3_mvr_frozen_vs_lora_mps_smoke_2026-10-23.md`.
+
+## 2026-10-24 — Comprehensive Evidence Audit and Experiment 3 Results
+
+Completed a documentation-only audit of the repository registry, reports, and
+saved metrics under `$LOGXY_ARTIFACT_ROOT`. No training, inference,
+downloads, checkpoint changes, or Git operations were performed.
+
+The matched Frozen-versus-LoRA Full-MVR continuation has now completed and the
+registry was corrected from `prepared` to `completed`. Both arms continued for
+two epochs from the same trained Full-MVR checkpoint on the same ordered
+train5000 stream. Frozen AP/AP50/AP75/AR@100 were
+0.3533/0.8082/0.2362/0.4846; LoRA achieved
+0.3652/0.8144/0.2722/0.4873. At the exploratory 0.425 FP/image budget, frozen
+recall/R20 were 0.8505/0.6264 at 0.4167 FP/image, while LoRA reached
+0.8531/0.6552 at 0.4000 FP/image. Frozen and LoRA training took 4,916 and
+13,232 seconds with 2.33 and 11.89 GiB observed peak MPS driver memory.
+
+Added missing registry records for completed DTSS train5000 work and AOS
+integral-image/RGB-thermal studies. The audit also records the corrected
+image-ID-safe train5000 annotation count of 6,415 versus a historical
+YOLO-conversion artifact count of 6,431. The difference is preserved as a
+reproducibility limitation.
+
+The complete supervisor-facing synthesis, protocol boundaries, evidence paths,
+and prioritized next experiments are in
+`docs/reports/logxy_comprehensive_experiment_comparison_2026-10-24.md`.
+
+## 2026-10-24 — GitHub Release Preparation
+
+Prepared the code/documentation tree for manual GitHub review without staging,
+committing, pushing, moving, or deleting files. Expanded `.gitignore` coverage
+for datasets, generated outputs, model/cache formats, archives, credentials,
+experiment trackers, profiler traces, and machine-local files while retaining
+lightweight subset-manifest exceptions. Expanded `README.md` with the actual
+research pipeline, datasets, verified results, environment, artifact-root
+convention, reproducible MVR commands, evaluation protocol, and limitations.
+
+Sanitized personal absolute paths in public project documentation by using
+`$LOGXY_REPO` and `$LOGXY_ARTIFACT_ROOT`; intentional Colab
+`/content/drive/...` paths remain. Updated
+`docs/GITHUB_RELEASE_CHECKLIST.md` with publication blockers and exact manual
+review commands. No training, inference, full test run, or artifact mutation
+was performed.
 

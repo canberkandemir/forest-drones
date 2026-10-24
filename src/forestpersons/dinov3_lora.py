@@ -180,6 +180,41 @@ def extract_lora_patch_features(
     return F.normalize(patch_tokens.float(), dim=-1), info
 
 
+def extract_lora_multilayer_patch_features(
+    image: Image.Image,
+    processor: Any,
+    model: nn.Module,
+    device: torch.device,
+    short_side: int = 672,
+    layer_indices: tuple[int, ...] = (3, 6, 9, 12),
+) -> tuple[torch.Tensor, PreprocessInfo]:
+    """Extract differentiable normalized patch grids from selected DINO blocks.
+
+    Hugging Face hidden state index ``n`` is the output after one-based
+    transformer block ``n`` because index zero is the embedding output.  This
+    convention matches the frozen MVR cache extractor exactly.
+    """
+
+    if not layer_indices or any(index <= 0 for index in layer_indices):
+        raise ValueError("layer_indices must contain positive one-based block indices")
+    resized, info = resize_to_patch_grid(image, short_side=short_side)
+    pixel_values = image_to_tensor(resized, processor, device)
+    outputs = model(pixel_values=pixel_values, output_hidden_states=True)
+    hidden_states = outputs.hidden_states
+    if hidden_states is None or max(layer_indices) >= len(hidden_states):
+        raise ValueError(
+            f"Requested layers {layer_indices}, but model returned "
+            f"{len(hidden_states or ())} hidden states"
+        )
+    num_patches = info.grid_height * info.grid_width
+    grids = []
+    for index in layer_indices:
+        tokens = hidden_states[index][0]
+        patches = tokens[-num_patches:].reshape(info.grid_height, info.grid_width, -1)
+        grids.append(F.normalize(patches.float(), dim=-1))
+    return torch.stack(grids), info
+
+
 def save_lora_fcos_checkpoint(
     path: Path,
     backbone: nn.Module,

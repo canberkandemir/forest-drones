@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evaluate matched frozen-DINOv3 baseline and MVR FCOS checkpoints on val600."""
+"""Evaluate matched baseline, native MVR, and full MVR FCOS checkpoints."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from forestpersons import ForestPersonsDataset
 from forestpersons.dinov3_detector import (
     DINOv3FCOSHead,
     DINOv3MVRFCOSHead,
+    DINOv3MVRNativeFCOSHead,
     cache_path_for_file,
     decode_fcos_predictions,
     load_feature_cache,
@@ -31,7 +32,7 @@ from forestpersons.evaluation import (
 
 
 THRESHOLDS = (0.001, 0.005) + tuple(value / 100 for value in range(1, 101))
-FP_BUDGETS = (0.15, 0.25, 0.35)
+FP_BUDGETS = (0.15, 0.25, 0.35, 0.425)
 
 
 def collect_samples(root: Path, manifest_path: Path) -> list[Any]:
@@ -61,7 +62,14 @@ def evaluate_arm(
     if checkpoint["arm"] != arm:
         raise ValueError(f"Checkpoint {checkpoint_path} is not the {arm} arm")
     model: torch.nn.Module
-    model = DINOv3FCOSHead() if arm == "baseline" else DINOv3MVRFCOSHead()
+    if arm == "baseline":
+        model = DINOv3FCOSHead()
+    elif arm == "mvr_native":
+        model = DINOv3MVRNativeFCOSHead()
+    elif arm == "mvr":
+        model = DINOv3MVRFCOSHead()
+    else:
+        raise ValueError(f"Unsupported arm: {arm}")
     model.load_state_dict(checkpoint["model_state"])
     model.to(device).eval()
     predictions: list[EvaluationPrediction] = []
@@ -162,7 +170,12 @@ def flatten_sweep_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "confidence_threshold": row["confidence_threshold"],
                     "precision": row["overall"]["precision"],
                     "recall": row["overall"]["recall"],
-                    "R20": row["by_visibility"].get("20", {}).get("recall", 0.0),
+                    **{
+                        f"R{visibility}": row["by_visibility"]
+                        .get(str(visibility), {})
+                        .get("recall", 0.0)
+                        for visibility in (20, 40, 70, 100)
+                    },
                     "false_positives_per_image": row["false_positives_per_image"],
                     "true_positives": row["overall"]["true_positives"],
                     "false_positives": row["overall"]["false_positives"],
@@ -186,11 +199,16 @@ def matched_budget_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     ),
                     "precision": matched["overall"]["precision"] if matched else None,
                     "recall": matched["overall"]["recall"] if matched else None,
-                    "R20": (
-                        matched["by_visibility"].get("20", {}).get("recall", 0.0)
-                        if matched
-                        else None
-                    ),
+                    **{
+                        f"R{visibility}": (
+                            matched["by_visibility"]
+                            .get(str(visibility), {})
+                            .get("recall", 0.0)
+                            if matched
+                            else None
+                        )
+                        for visibility in (20, 40, 70, 100)
+                    },
                     "false_positives_per_image": (
                         matched["false_positives_per_image"] if matched else None
                     ),
@@ -214,9 +232,9 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
 
 def comparison_report(results: list[dict[str, Any]], matched: list[dict[str, Any]]) -> str:
     lines = [
-        "# Frozen DINOv3 FCOS vs MVR FCOS on ForestPersons val600",
+        "# Frozen DINOv3 FCOS MVR readout ablation on ForestPersons val600",
         "",
-        "Both models use identical val600 images, IoU 0.50 one-to-one matching, "
+        "All evaluated models use identical val600 images, IoU 0.50 one-to-one matching, "
         "candidate floor 0.001, NMS IoU 0.50, and top-300 decoding. Thresholds "
         "are selected separately per model from the same predeclared sweep. "
         "Because selection uses val600 labels, matched-budget points are exploratory.",
@@ -236,18 +254,22 @@ def comparison_report(results: list[dict[str, Any]], matched: list[dict[str, Any
             "",
             "## Matched FP/image budgets",
             "",
-            "| Model | Budget | Threshold | Precision | Recall | R20 | FP/image |",
-            "|---|---:|---:|---:|---:|---:|---:|",
+            "| Model | Budget | Threshold | Precision | Recall | R20 | R40 | R70 | R100 | FP/image |",
+            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
         ]
     )
     for row in matched:
         if row["confidence_threshold"] is None:
-            lines.append(f"| {row['arm']} | {row['fp_per_image_budget']:.2f} | n/a | n/a | n/a | n/a | n/a |")
+            lines.append(
+                f"| {row['arm']} | {row['fp_per_image_budget']:.3f} | "
+                "n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |"
+            )
         else:
             lines.append(
-                f"| {row['arm']} | {row['fp_per_image_budget']:.2f} | "
+                f"| {row['arm']} | {row['fp_per_image_budget']:.3f} | "
                 f"{row['confidence_threshold']:.3f} | {row['precision']:.4f} | "
-                f"{row['recall']:.4f} | {row['R20']:.4f} | "
+                f"{row['recall']:.4f} | {row['R20']:.4f} | {row['R40']:.4f} | "
+                f"{row['R70']:.4f} | {row['R100']:.4f} | "
                 f"{row['false_positives_per_image']:.4f} |"
             )
     return "\n".join(lines) + "\n"
@@ -260,6 +282,7 @@ def main() -> None:
     parser.add_argument("--final-cache-root", type=Path, required=True)
     parser.add_argument("--mvr-cache-root", type=Path, required=True)
     parser.add_argument("--baseline-checkpoint", type=Path, required=True)
+    parser.add_argument("--mvr-native-checkpoint", type=Path)
     parser.add_argument("--mvr-checkpoint", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--device", choices=("mps", "cpu"), default="mps")
@@ -272,10 +295,11 @@ def main() -> None:
     )
     samples = collect_samples(args.root, args.manifest)
     results = []
-    for arm, checkpoint in (
-        ("baseline", args.baseline_checkpoint),
-        ("mvr", args.mvr_checkpoint),
-    ):
+    arms = [("baseline", args.baseline_checkpoint)]
+    if args.mvr_native_checkpoint is not None:
+        arms.append(("mvr_native", args.mvr_native_checkpoint))
+    arms.append(("mvr", args.mvr_checkpoint))
+    for arm, checkpoint in arms:
         metrics, predictions = evaluate_arm(
             arm,
             checkpoint,
